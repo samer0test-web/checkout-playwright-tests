@@ -1,24 +1,36 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
+
+const isCI = !!process.env.CI;
 
 export default defineConfig({
-  testDir: './tests',
+  testDir: "./tests",
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: 1,
-  reporter: 'html',
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  workers: isCI ? 1 : undefined,
+  reporter: [["html", { open: "never" }]],
   use: {
-    baseURL: 'https://expertsacademy-staging.web.app',
-    headless: false,
-    trace: 'on-first-retry',
+    baseURL: process.env.BASE_URL || "https://expertsacademy-staging.web.app",
+    headless: isCI,
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
+    video: isCI ? "retain-on-failure" : "off",
   },
+
   projects: [
-    {
-      name: 'chromium',
-      use: {
-        viewport: null,
-        launchOptions: { args: ['--start-maximized'] },
-      },
-    },
+    isCI
+      ? {
+          name: "chromium",
+          use: {
+            ...devices["Desktop Chrome"],
+          },
+        }
+      : {
+          name: "chromium",
+          use: {
+            viewport: null,
+            launchOptions: { args: ["--start-maximized"] },
+          },
+        },
   ],
 });
