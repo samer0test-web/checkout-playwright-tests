@@ -9,22 +9,23 @@ type WorkerFixtures = {
     ReturnType<import("@playwright/test").BrowserContext["storageState"]>
   >;
 };
-
+// Fill OTP fields dynamically
 async function fillOtpAdaptive(page: Page) {
   const boxes = page.locator('input[aria-label^="Please enter OTP character"]');
   await boxes.first().waitFor({ state: "visible", timeout: 4000 });
   const count = await boxes.count();
+  // Generate random digits for OTP
   const code = Array.from({ length: count }, () =>
     Math.floor(Math.random() * 10)
   ).join("");
+  // Fill each OTP box
   for (let i = 0; i < count; i++) {
     const box = boxes.nth(i);
     await box.click();
     await box.press(code[i]);
-    await page.waitForTimeout(50);
   }
 }
-
+// Wait until authentication tokens are stored in localStorage
 async function waitForAuthReady(page: Page) {
   await page.waitForFunction(
     () =>
@@ -34,6 +35,7 @@ async function waitForAuthReady(page: Page) {
   );
 }
 export const test = base.extend<TestFixtures, WorkerFixtures>({
+  // Worker-scoped fixture: performs login once per worker and saves state
   authState: [
     async ({ browser }, use, testInfo) => {
       const baseURL =
@@ -42,7 +44,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
       const context = await browser.newContext();
       const page = await context.newPage();
-
+      // Set cookies approval in localStorage
       await page.addInitScript(() => {
         localStorage.setItem("cookies", "approved");
       });
@@ -63,6 +65,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     },
     { scope: "worker" },
   ],
+  // Page fixture: opens checkout page with saved auth state
   checkoutPage: async ({ browser, authState }, use, testInfo) => {
     const baseURL =
       (testInfo.project.use?.baseURL as string) ||
