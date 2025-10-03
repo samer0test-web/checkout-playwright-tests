@@ -14,13 +14,6 @@ Tests can be run locally or automatically using **GitHub Actions** (CI/CD).
 ---
 
 ## ⚙️ Setup & Run
-```bash
-# Clone the repository
-git clone https://github.com/<username>/<repo>.git
-cd <repo>
-
-# Install dependencies
-npm install
 
 # Run all tests
 npx playwright test
